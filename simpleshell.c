@@ -4,6 +4,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define ANSI_COLOR_RED     "\x1b[31m"
 #define ANSI_COLOR_GREEN   "\x1b[32m"
@@ -72,11 +73,20 @@ int doCommand(char **ppCmd)
     }
     else if (!strcmp(ppCmd[0], "cd"))
     {
+		char cwd[256];
+        getcwd(cwd, sizeof(cwd));
 		if (ppCmd[1]){
-			chdir(ppCmd[1]);
+			char *cmd = ppCmd[1];
+			if (cmd[0] != '/'){
+				char *dir = strcat(cwd, "/");
+				dir = strcat(dir, ppCmd[1]);
+				chdir(dir);
+			} else {
+				chdir(ppCmd[1]);
+			}
 		} else {
 			chdir(getenv("HOME"));        
-		}		
+		}
         return 0;
     }
     else
@@ -87,7 +97,7 @@ int doCommand(char **ppCmd)
         {
             // child process
             // add code here: change execlp to execvp to include command line arguments
-            execlp(ppCmd[0], "", (char*)0);
+            execvp(ppCmd[0], ppCmd);
 
             // this following instruction will only happens if the exec failed
             printf("exec failed\n");
@@ -99,13 +109,14 @@ int doCommand(char **ppCmd)
         {
             // fork failed
             printf("fork failed\n");
-            return 2;
+            return 0;
         }
         else
         {
             // this is the parent process
             // wait for child process to finish
             // add code here: use waitpid system call
+            waitpid(pID,0,0);
         }
     }
 
@@ -125,10 +136,12 @@ int main(int argc, char* argv[])
 		char *dupLine = NULL;
 		char cwd[256];
         getcwd(cwd, sizeof(cwd));
-        if (strcmp(cwd, getenv("HOME"))){
-			printf(ANSI_COLOR_CYAN "TheOneShell" ANSI_COLOR_RESET ":%s> ", cwd);
+        char *home = strstr(cwd, getenv("HOME"));
+        int size = strlen(cwd) - strlen(getenv("HOME"));
+        if (home){
+			printf(ANSI_COLOR_CYAN "TheOneShell" ANSI_COLOR_RESET ":~%s> ", home + strlen(home) - size);
 		} else {
-			printf(ANSI_COLOR_CYAN "TheOneShell" ANSI_COLOR_RESET ":~> ");
+			printf(ANSI_COLOR_CYAN "TheOneShell" ANSI_COLOR_RESET ":%s> ", cwd);
 		}
 		ssize_t cc = (ssize_t)getline(&line, &n, stdin);
 		if (line)
