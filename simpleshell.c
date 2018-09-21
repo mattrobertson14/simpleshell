@@ -23,7 +23,7 @@ char** getCommandLine(const char *line)
     int cTokens = 0;
     const char delims[] = " \t\n";
 
-    // first count the number of tokens
+    // first  count the number of tokens
     // note that strtok will write on your original line buffer, 
     // so we use a temp duplicated copy, don't forget to free it
     char *dupLine = strdup(line);
