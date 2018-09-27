@@ -68,7 +68,7 @@ int doCommand(char **ppCmd)
     // is it an internal command "exit" or "cd"?
     if (!strcmp(ppCmd[0], "exit"))
     {
-        printf("Exiting TheOneShell...\n");
+        printf("Exiting TheOneShell...\n\n");
         exit(0);
     }
     else if (!strcmp(ppCmd[0], "cd"))
@@ -100,16 +100,18 @@ int doCommand(char **ppCmd)
             execvp(ppCmd[0], ppCmd);
 
             // this following instruction will only happens if the exec failed
-            printf("exec failed\n");
+            printf(ANSI_COLOR_RED "exec failed\n");
             
             // add code here: what do you do if the child process failed to launch the command?
             //      for example, user types "lkasjdhflakjh" which is an invalid command
+			printf(ANSI_COLOR_RED "%s is not a valid command\n" ANSI_COLOR_RESET, ppCmd[0]);
+			return 1;
         }
         else if (pID < 0)
         {
             // fork failed
-            printf("fork failed\n");
-            return 0;
+            printf(ANSI_COLOR_RED "fork failed\n" ANSI_COLOR_RESET);
+            return 2;
         }
         else
         {
@@ -139,9 +141,9 @@ int main(int argc, char* argv[])
         char *home = strstr(cwd, getenv("HOME"));
         int size = strlen(cwd) - strlen(getenv("HOME"));
         if (home){
-			printf(ANSI_COLOR_CYAN "TheOneShell" ANSI_COLOR_RESET ":~%s> ", home + strlen(home) - size);
+			printf(ANSI_COLOR_CYAN "\nTheOneShell" ANSI_COLOR_GREEN ":~%s> " ANSI_COLOR_RESET, home + strlen(home) - size);
 		} else {
-			printf(ANSI_COLOR_CYAN "TheOneShell" ANSI_COLOR_RESET ":%s> ", cwd);
+			printf(ANSI_COLOR_CYAN "\nTheOneShell" ANSI_COLOR_GREEN ":%s> " ANSI_COLOR_RESET, cwd);
 		}
 		ssize_t cc = (ssize_t)getline(&line, &n, stdin);
 		if (line)
